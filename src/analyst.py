@@ -1,10 +1,11 @@
 """Collect server aggregates and reconstruct a session's total."""
 
 from src.models import Parameters, PartialSum, ProtocolError
+from src.shamir import reconstruct_pair
 
 
 class Analyst:
-    """Accept one partial per server and reconstruct the additive total."""
+    """Accept one partial per server and reconstruct either protocol."""
 
     def __init__(self, parameters: Parameters, session_id: str) -> None:
         """Start a session with no received server partials."""
@@ -35,3 +36,14 @@ class Analyst:
         for partial in self.partials.values():
             total += partial.value
         return total % self.parameters.p
+
+    def reconstruct_shamir(self, trace: dict | None = None) -> int:
+        """Interpolate the first two available positions, optionally tracing it."""
+        if len(self.partials) < 2:
+            raise ProtocolError("Need two server partial sums")
+        # Sorting selects the same pair whether or not a trace is requested.
+        server_ids = sorted(self.partials)
+        u = server_ids[0]
+        v = server_ids[1]
+        return reconstruct_pair(u, self.partials[u].value, v,
+                                self.partials[v].value, self.parameters.p, trace)

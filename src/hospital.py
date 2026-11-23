@@ -1,8 +1,9 @@
-"""Create private additive shares for a hospital."""
+"""Create private additive or Shamir shares for a hospital."""
 
 import secrets
 
 from src.models import Parameters, Share
+from src.shamir import create_shamir_values
 
 
 class Hospital:
@@ -24,6 +25,17 @@ class Hospital:
         for _ in range(self.parameters.m - 1):
             values.append(secrets.randbelow(self.parameters.p))
         values.append((self.value - sum(values)) % self.parameters.p)
+        shares = []
+        for server_id in range(1, self.parameters.m + 1):
+            shares.append(Share(session_id=session_id, origin=self.hospital_id,
+                                destination=server_id, value=values[server_id - 1]))
+        return shares
+
+    def create_shamir_shares(
+        self, session_id: str, coefficient_trace: dict | None = None
+    ) -> list[Share]:
+        """Evaluate one fresh polynomial at the three server positions."""
+        values = create_shamir_values(self.value, self.parameters.p, coefficient_trace)
         shares = []
         for server_id in range(1, self.parameters.m + 1):
             shares.append(Share(session_id=session_id, origin=self.hospital_id,
