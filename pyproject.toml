@@ -1,7 +1,12 @@
 [project]
 name = "smpc"
 version = "0.1.0"
-description = "Add your description here"
+description = "Local secret-sharing SMPC demonstration"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "pydantic>=2,<3",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<10"]
